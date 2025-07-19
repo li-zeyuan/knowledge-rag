@@ -40,7 +40,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'models',
-    'files'
+    'files',
+    'chats'
 ]
 
 MIDDLEWARE = [
@@ -128,3 +129,22 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True 
+
+# 自定义配置项
+LLM_MODELS = [
+    "gpt-3.5-turbo", 
+    "gpt-3.5-turbo-16k-0613",
+    "gpt-3.5-turbo-0613",
+    "gpt-4", "gpt-4-32k",
+    "chatglm_pro", 
+    "chatglm_std", 
+    "chatglm_lite"
+    "ERNIE-Bot",
+    "ERNIE-Bot-4",
+    "ERNIE-Bot-turbo"
+]
+
+EMBEDDING_MODELS = [
+    'zhipuai',
+    'openai'
+]
