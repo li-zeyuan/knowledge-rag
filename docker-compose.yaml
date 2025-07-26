@@ -1,0 +1,31 @@
+version: '3'
+services:
+    minio:
+      container_name: knowledge-rag-minio
+      image: minio/minio:RELEASE.2024-10-29T16-01-48Z
+      restart: always
+      command: 'server /data --console-address ":9001"'
+      volumes:
+        - 'knowledge-rag-minio-volume:/data'
+      environment:
+        - MINIO_ROOT_PASSWORD=minioadmin
+        - MINIO_ROOT_USER=minioadmin
+      ports:
+        - '9001:9001'
+        - '9000:9000'
+    mysql:
+      container_name: knowledge-rag-mysql
+      image: mysql:8.0
+      restart: always
+      environment:
+        MYSQL_ROOT_PASSWORD: root
+        MYSQL_ROOT_HOST: '%'
+        TZ: UTC
+      ports:
+        - "3306:3306"
+      volumes:
+        - knowledge-rag-mysql-volume:/var/lib/mysql
+
+volumes:
+  knowledge-rag-mysql-volume:
+  knowledge-rag-minio-volume:

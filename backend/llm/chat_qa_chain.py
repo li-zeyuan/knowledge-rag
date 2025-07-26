@@ -1,6 +1,6 @@
 from re import L
 import re
-from database.database import get_vectordb
+from plugins.chroma import get_vectordb
 from .llm import model_to_llm
 from langchain.chains import ConversationalRetrievalChain, RetrievalQA
 from langchain.prompts import PromptTemplate

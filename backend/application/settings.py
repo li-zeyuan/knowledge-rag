@@ -80,8 +80,12 @@ WSGI_APPLICATION = 'application.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'HOST': 'localhost',
+        'PORT': 3306,
+        'USER': 'root',
+        'PASSWORD': 'root',
+        'NAME': 'knowledge_rag',
     }
 }
 
@@ -148,3 +152,11 @@ EMBEDDING_MODELS = [
     'zhipuai',
     'openai'
 ]
+
+MINIO = {
+    'HOST': 'localhost',
+    'PORT': 9000,
+    'ACCESS_KEY': 'minioadmin',
+    'SECRET_KEY': 'minioadmin',
+    'BUCKET': 'knowledge-rag'
+}

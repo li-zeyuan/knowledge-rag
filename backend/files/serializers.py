@@ -3,7 +3,13 @@ from django.core.validators import FileExtensionValidator
 from django.core.exceptions import ValidationError
 import re
 
-class FilesSerializer(serializers.Serializer):
+class GetPreSignedUrlSerializer(serializers.Serializer):
+    file_name = serializers.CharField(
+        required=True,
+        help_text="文件名称"
+    )
+
+class CreateFileSerializer(serializers.Serializer):
     knowledge_db_name = serializers.CharField(
         required=True,
         help_text="知识库名称"
