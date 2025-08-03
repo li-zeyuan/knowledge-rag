@@ -27,3 +27,8 @@ python manage.py runserver
 ```
 
 #### 前端
+1、安装依赖
+2、启动服务
+```
+npm run dev
+```

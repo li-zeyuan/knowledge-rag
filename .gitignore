@@ -240,3 +240,4 @@ coverage
 *.sw?
 
 *.tsbuildinfo
+.knowledge_db

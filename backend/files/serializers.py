@@ -22,9 +22,10 @@ class CreateFileSerializer(serializers.Serializer):
 
     files = serializers.ListField(
         child=serializers.CharField(
-            max_length=256,
+            max_length=1024,
             min_length=1,
         ),
+        allow_empty=False,
         help_text="文件列表"
     )
     

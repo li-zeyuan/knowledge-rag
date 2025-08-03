@@ -3,18 +3,22 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import Chroma
 from embedding.zhipuai_embedding import ZhipuAIEmbeddings
+from plugins.minio import download_file
 import os
 import shutil
 
-base_db_dir = "backend/.vector_db"
+vector_db_dir = "backend/.vector_db"
+knowledge_db_dir = "backend/.knowledge_db"
 
-def create_db(knowledge_db_name, files, embedding:str):
-    if len(files) == 0:
+def create_db(id, fileKeys, embedding):
+    if len(fileKeys) == 0:
         return "files is empty"
 
     loader = []
-    for file in files:
-        loader.append(get_loader(file))
+    for fileKey in fileKeys:
+        local_file_path = f"{knowledge_db_dir}/{fileKey}"
+        download_file(fileKey, local_file_path)
+        loader.append(get_loader(local_file_path))
 
     docs  = []
     for l in loader:
@@ -27,16 +31,16 @@ def create_db(knowledge_db_name, files, embedding:str):
     vector_db = Chroma.from_documents(
         documents=split_docs,
         embedding=embedding_model,
-        persist_directory=f"{base_db_dir}/{knowledge_db_name}|{embedding}"
+        persist_directory=f"{vector_db_dir}/{id}"
     )
     vector_db.persist()
 
     return
         
-def get_loader(file):
-    file_type = file.split(".")[-1]
+def get_loader(file_path):
+    file_type = file_path.split(".")[-1]
     if file_type == "txt":
-        return UnstructuredFileLoader(file)
+        return UnstructuredFileLoader(file_path)
     else:
         raise ValueError(f"file type :{file_type} not support")
 
@@ -49,11 +53,11 @@ def get_embedding(str):
         raise ValueError(f"embedding type :{str} not support")
 
 def get_knowledge_db_list():
-    dirs = os.listdir(base_db_dir)
+    dirs = os.listdir(vector_db_dir)
     return dirs
 
 def get_vectordb(knowledge_db_name):
-    files = os.listdir(f"{base_db_dir}/{knowledge_db_name}")
+    files = os.listdir(f"{vector_db_dir}/{knowledge_db_name}")
     if len(files) == 0:
         return None
 
@@ -61,11 +65,11 @@ def get_vectordb(knowledge_db_name):
     embedding_model = get_embedding(embedding)
 
     vector_db = Chroma(
-        persist_directory=f"{base_db_dir}/{knowledge_db_name}",
+        persist_directory=f"{vector_db_dir}/{knowledge_db_name}",
         embedding_function=embedding_model
     )
     
     return vector_db
 
 def delete_db(knowledge_db_name):
-   shutil.rmtree(f"{base_db_dir}/{knowledge_db_name}")
+   shutil.rmtree(f"{vector_db_dir}/{knowledge_db_name}")
