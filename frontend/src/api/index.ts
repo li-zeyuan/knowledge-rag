@@ -20,9 +20,9 @@ export function getEmbeddingModels() {
   });
 }
 
-export function chatWithLLm(data: any) {
+export function chatWithLLM(data: any) {
   return axios.post("/api/chat/with_llm/", data).then((res) => {
-    return res.data;
+    return res;
   });
 }
 
@@ -34,6 +34,12 @@ export function getPresignedPutUrl(data: any) {
 
 export function vectorizeFile(data: any) {
   return axios.post("/api/files/", data).then((res) => {
+    return res;
+  });
+}
+
+export function getKnowledgeDbNames() {
+  return axios.get("/api/files/").then((res) => {
     return res;
   });
 }

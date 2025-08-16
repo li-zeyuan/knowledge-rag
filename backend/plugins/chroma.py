@@ -8,7 +8,7 @@ import os
 import shutil
 
 vector_db_dir = "backend/.vector_db"
-knowledge_db_dir = "backend/.knowledge_db"
+knowledge_files_dir = "backend/.knowledge_files"
 
 def create_db(id, fileKeys, embedding):
     if len(fileKeys) == 0:
@@ -16,7 +16,7 @@ def create_db(id, fileKeys, embedding):
 
     loader = []
     for fileKey in fileKeys:
-        local_file_path = f"{knowledge_db_dir}/{fileKey}"
+        local_file_path = f"{knowledge_files_dir}/{fileKey}"
         download_file(fileKey, local_file_path)
         loader.append(get_loader(local_file_path))
 

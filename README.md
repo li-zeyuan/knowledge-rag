@@ -23,7 +23,7 @@ pyenv activate venv-3.10.0
 cd knowledge-rag/backend
 python manage.py makemigrations # 生成迁移文件
 python manage.py migrate # 迁移到数据库
-python manage.py runserver
+python manage.py runserver 19001
 ```
 
 #### 前端
@@ -32,3 +32,5 @@ python manage.py runserver
 ```
 npm run dev
 ```
+
+进度：

@@ -6,6 +6,7 @@ from .serializers import ChatWithLLMSerializer, ChatDBWithHistorySerializer
 from rest_framework import status
 from llm.llm import format_prompt, get_answer
 from llm.chat_qa_chain import chat_qa_whit_db_chain, chat_qa_whitout_db_chain
+from .models import Chat, ChatTypeChatLLM
 # Create your views here.
 
 class ChatsView(viewsets.ViewSet):
@@ -19,7 +20,10 @@ class ChatsView(viewsets.ViewSet):
         history = serializer.validated_data.get("history", [])
         llm = serializer.validated_data.get("llm", "")
 
-        chat_item = self.response(prompt, history, llm)
+        chat_item, isErr = self.response(prompt, history, llm)
+        instance = Chat(prompt=prompt, bot_message=chat_item["bot_message"], chat_type=ChatTypeChatLLM, llm=llm, is_error=isErr)
+        instance.save()
+
         return Response(chat_item)
     
     @action(methods=['post'], url_path='db_with_history',detail=False)
@@ -55,6 +59,6 @@ class ChatsView(viewsets.ViewSet):
             formatted_prompt = format_prompt(prompt, ctx_history)
             bot_message = get_answer(formatted_prompt, llm, temperature, max_tokens)
 
-            return {"user_message": prompt, "bot_message": bot_message}
+            return {"user_message": prompt, "bot_message": bot_message}, False
         except Exception as e:
-            return {"user_message": prompt, "bot_message": e.user_message}
+            return {"user_message": prompt, "bot_message": e.user_message}, True

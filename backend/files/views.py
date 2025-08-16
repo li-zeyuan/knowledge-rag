@@ -1,3 +1,4 @@
+from django.db import transaction
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework import status
@@ -27,15 +28,18 @@ class FilesView(viewsets.ViewSet):
         files = fileSerializer.validated_data.get('files', [])
         embedding = fileSerializer.validated_data.get('embedding', '')
 
-        instance = File(knowledge_db_name=knowledge_db_name, files=files, embedding=embedding)
-        create_db(instance.id, files, embedding) 
-        instance.save()
+        with transaction.atomic():
+            instance = File(knowledge_db_name=knowledge_db_name, files=files, embedding=embedding)
+            instance.save()
+
+            create_db(instance.id, files, embedding) 
 
         return Response({"id": instance.id}, status=status.HTTP_200_OK)
 
     def list(self, request):
-        list = get_knowledge_db_list()
-        return Response(list, status=status.HTTP_200_OK)
+        files = File.objects.all().order_by('-id')
+        names = [file.knowledge_db_name for file in files]
+        return Response({"names": names}, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['delete'], url_path='del')
     def del_db(self, request):
