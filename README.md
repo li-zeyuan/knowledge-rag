@@ -33,4 +33,6 @@ python manage.py runserver 19001
 npm run dev
 ```
 
-进度：
+## todo
+- css排版
+- chat knowledge

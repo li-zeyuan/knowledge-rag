@@ -20,8 +20,21 @@ export function getEmbeddingModels() {
   });
 }
 
+export function getChatHistory(data: any) {
+  return axios.get("/api/chats/history", data).then((res) => {
+    return res;
+  });
+}
+
+
 export function chatWithLLM(data: any) {
-  return axios.post("/api/chat/with_llm/", data).then((res) => {
+  return axios.post("/api/chats/with_llm/", data).then((res) => {
+    return res;
+  });
+}
+
+export function clearChatHistory() {
+  return axios.post("/api/chats/clear_history/").then((res) => {
     return res;
   });
 }

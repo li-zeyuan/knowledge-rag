@@ -13,10 +13,11 @@ getLLMModels().then((res) => {
     LLMList.value.push({
       label: item,
       value: item,
+      disabled: !item.includes("chatglm"),
     });
   }
 
-  LLMValue.value = LLMList.value[0].value;
+  handleLLMValueChange(LLMList.value[0].value);
 });
 
 getEmbeddingModels().then((res) => {
@@ -24,31 +25,39 @@ getEmbeddingModels().then((res) => {
     embeddingModelList.value.push({
       label: item,
       value: item,
+      disabled: !item.includes("zhipuai"),
     });
   }
 
-  embeddingModelValue.value = embeddingModelList.value[0].value;
+  handleEmbeddingModelValueChange(embeddingModelList.value[0].value);
 });
+
+// 定义要发送给父组件的事件
+const emit = defineEmits(["update:llmValue", "update:embeddingValue"]);
 
 function handleLLMValueChange(value) {
   LLMValue.value = value;
+  // 向父组件发送更新事件
+  emit("update:llmValue", value);
 }
 
 function handleEmbeddingModelValueChange(value) {
   embeddingModelValue.value = value;
+  // 向父组件发送更新事件
+  emit("update:embeddingValue", value);
 }
 </script>
 
 <template>
   <div class="llm-selecter-container">
-    <h1>large language model</h1>
+    <div>large language model</div>
     <n-select
       :value="LLMValue"
       :options="LLMList"
       @update:value="handleLLMValueChange"
     />
 
-    <h1>embedding model</h1>
+    <div>embedding model</div>
     <n-select
       :value="embeddingModelValue"
       :options="embeddingModelList"
@@ -58,4 +67,7 @@ function handleEmbeddingModelValueChange(value) {
 </template>
 
 <style scoped>
+.llm-selecter-container {
+  margin-top: 40px;
+}
 </style>

@@ -136,13 +136,13 @@ CORS_ALLOW_CREDENTIALS = True
 
 # 自定义配置项
 LLM_MODELS = [
+    "chatglm_pro", 
+    "chatglm_std", 
+    "chatglm_lite"
     "gpt-3.5-turbo", 
     "gpt-3.5-turbo-16k-0613",
     "gpt-3.5-turbo-0613",
     "gpt-4", "gpt-4-32k",
-    "chatglm_pro", 
-    "chatglm_std", 
-    "chatglm_lite"
     "ERNIE-Bot",
     "ERNIE-Bot-4",
     "ERNIE-Bot-turbo"

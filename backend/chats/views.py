@@ -10,6 +10,23 @@ from .models import Chat, ChatTypeChatLLM
 # Create your views here.
 
 class ChatsView(viewsets.ViewSet):
+    @action(methods=['get'], url_path='history',detail=False)
+    def history(self, request):
+        chats = Chat.objects.all().order_by('id')
+
+        data = []
+        for c in chats:
+            data.append(
+                {
+                    "id": c.id,
+                    "prompt": c.prompt,
+                    "bot_message": c.bot_message,
+                    "is_error": c.is_error,
+                    "created_at": c.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+                }
+            )
+        return Response(data)
+
     @action(methods=['post'], url_path='with_llm',detail=False)
     def with_llm(self, request):
         serializer = ChatWithLLMSerializer(data=request.data)
@@ -17,10 +34,10 @@ class ChatsView(viewsets.ViewSet):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
         prompt = serializer.validated_data.get("prompt", "")
-        history = serializer.validated_data.get("history", [])
         llm = serializer.validated_data.get("llm", "")
+        temperature = serializer.validated_data.get("temperature", 0.1)
 
-        chat_item, isErr = self.response(prompt, history, llm)
+        chat_item, isErr = self.response(prompt, llm, temperature)
         instance = Chat(prompt=prompt, bot_message=chat_item["bot_message"], chat_type=ChatTypeChatLLM, llm=llm, is_error=isErr)
         instance.save()
 
@@ -53,10 +70,14 @@ class ChatsView(viewsets.ViewSet):
         chat_item = chat_qa_whitout_db_chain(knowledge_db_name, prompt, llm)
         return Response(chat_item)
 
-    def response(self, prompt, history, llm, history_len = 3, temperature = 0.1, max_tokens = 2048):
+    @action(methods=['post'], url_path='clear_history',detail=False)
+    def clear_history(self, request):
+        Chat.objects.all().delete()
+        return Response(status=status.HTTP_200_OK)
+
+    def response(self, prompt, llm, temperature = 0.1, max_tokens = 2048):
         try:
-            ctx_history = history[-history_len:]
-            formatted_prompt = format_prompt(prompt, ctx_history)
+            formatted_prompt = format_prompt(prompt, [])
             bot_message = get_answer(formatted_prompt, llm, temperature, max_tokens)
 
             return {"user_message": prompt, "bot_message": bot_message}, False

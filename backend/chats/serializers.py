@@ -1,14 +1,6 @@
 from rest_framework import serializers
 
 class ChatWithLLMSerializer(serializers.Serializer):
-    history = serializers.ListField(
-        child=serializers.DictField(
-            child=serializers.CharField()
-        ),
-        required=False,
-        allow_empty=True,
-        help_text="对话历史，格式：[{'bot_message': 'xx', 'user_message': 'xx'}]"
-    )
     prompt = serializers.CharField(
         required=True,
         help_text = "问题"
@@ -17,7 +9,10 @@ class ChatWithLLMSerializer(serializers.Serializer):
         required=True,
         help_text = "llm"
     )
-    
+    temperature = serializers.FloatField(
+        required=True,
+        help_text = "温度"
+    )
    
 class ChatDBWithHistorySerializer(serializers.Serializer):
     knowledge_db_name = serializers.CharField(

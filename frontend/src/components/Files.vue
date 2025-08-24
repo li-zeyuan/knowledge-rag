@@ -10,8 +10,15 @@ import {
   NButton,
 } from "naive-ui";
 import { getPresignedPutUrl, vectorizeFile } from "../api";
-import { ref, computed } from "vue";
+import { ref, computed, defineProps } from "vue";
 import axios from "axios";
+
+const props = defineProps({
+  selectedEmbedding: {
+    type: String,
+    default: "",
+  },
+});
 
 const fileList = ref([]);
 const fileNamePresignedKeyMap = ref({});
@@ -41,8 +48,7 @@ function clickVectorize() {
   vectorizeFile({
     knowledge_db_name: knowledgeName.value,
     files: presignedKeys,
-    // todo
-    embedding: "zhipuai",
+    embedding: props.selectedEmbedding,
   }).then((res) => {
     if (res.status === 200) {
       knowledgeName.value = "";
@@ -86,14 +92,6 @@ function uploadFile({ file, onFinish, onError, onProgress }) {
  
 <template>
   <div class="files-container">
-    <n-input
-      :value="knowledgeName"
-      type="text"
-      placeholder="Please enter the knowledge name"
-      clearable
-      @update:value="handleKnowledgeNameChange"
-    />
-
     <n-upload
       :custom-request="uploadFile"
       accept=".txt"
@@ -111,11 +109,41 @@ function uploadFile({ file, onFinish, onError, onProgress }) {
       </n-upload-dragger>
     </n-upload>
 
-    <n-button type="primary" :disabled="!canVectorize" @click="clickVectorize"
-      >Vectorize</n-button
-    >
+    <div class="vectorize-container">
+      <div class="vectorize-input">
+        <div>knowledge name</div>
+        <n-input
+          :value="knowledgeName"
+          type="text"
+          placeholder="Please enter the knowledge name"
+          clearable
+          @update:value="handleKnowledgeNameChange"
+        />
+      </div>
+
+      <div class="vectorize-button">
+        <n-button
+          type="primary"
+          :disabled="!canVectorize"
+          @click="clickVectorize"
+          >Vectorize</n-button
+        >
+      </div>
+    </div>
   </div>
 </template>
 
 <style scoped>
+.vectorize-container {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+}
+.vectorize-input {
+  width: 70%;
+}
+.vectorize-button {
+  display: flex;
+  align-items: flex-end;
+}
 </style>
