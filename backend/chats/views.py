@@ -2,11 +2,13 @@ from django.shortcuts import render
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from .serializers import ChatWithLLMSerializer, ChatDBWithHistorySerializer
+from .serializers import ChatWithLLMSerializer, ChatDBSerializer
 from rest_framework import status
 from llm.llm import format_prompt, get_answer
 from llm.chat_qa_chain import chat_qa_whit_db_chain, chat_qa_whitout_db_chain
-from .models import Chat, ChatTypeChatLLM
+from .models import Chat, ChatTypeChatLLM, ChatTypeChatKnowledgeWithHistory, ChatTypeChatKnowledgeWithoutHistory
+from files.models import File
+from llm.chat_qa_chain import markdown_to_html
 # Create your views here.
 
 class ChatsView(viewsets.ViewSet):
@@ -45,7 +47,7 @@ class ChatsView(viewsets.ViewSet):
     
     @action(methods=['post'], url_path='db_with_history',detail=False)
     def db_with_history(self, request):
-        serializer = ChatDBWithHistorySerializer(data=request.data)
+        serializer = ChatDBSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
@@ -53,21 +55,33 @@ class ChatsView(viewsets.ViewSet):
         prompt = serializer.validated_data.get("prompt","")
         history = serializer.validated_data.get("history",[])
         llm = serializer.validated_data.get("llm","")
+        top_k = serializer.validated_data.get("top_k", 3)
 
-        chat_item = chat_qa_whit_db_chain(knowledge_db_name, prompt, llm,history)
+        file = File.objects.get(knowledge_db_name=knowledge_db_name)
+
+        chat_item, isErr = chat_qa_whit_db_chain(file, prompt, llm, history, top_k)
+        instance = Chat(prompt=prompt, bot_message=chat_item["bot_message"], chat_type=ChatTypeChatKnowledgeWithHistory, llm=llm, is_error=isErr)
+        instance.save()
         return Response(chat_item)
     
     @action( methods=['post'], url_path='db_without_history',detail=False)
     def db_without_history(self, request):
-        serializer = ChatDBWithHistorySerializer(data=request.data)
+        serializer = ChatDBSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
         knowledge_db_name = serializer.validated_data.get("knowledge_db_name","")
         prompt = serializer.validated_data.get("prompt","")
         llm = serializer.validated_data.get("llm","")
+        top_k = serializer.validated_data.get("top_k", 3)
+        temperature = serializer.validated_data.get("temperature", 0.1)
 
-        chat_item = chat_qa_whitout_db_chain(knowledge_db_name, prompt, llm)
+        file = File.objects.get(knowledge_db_name=knowledge_db_name)
+
+        chat_item, isErr = chat_qa_whitout_db_chain(file, prompt, llm, top_k, temperature)
+
+        instance = Chat(prompt=prompt, bot_message=chat_item["bot_message"], chat_type=ChatTypeChatKnowledgeWithoutHistory, llm=llm, is_error=isErr)
+        instance.save()
         return Response(chat_item)
 
     @action(methods=['post'], url_path='clear_history',detail=False)
@@ -79,7 +93,8 @@ class ChatsView(viewsets.ViewSet):
         try:
             formatted_prompt = format_prompt(prompt, [])
             bot_message = get_answer(formatted_prompt, llm, temperature, max_tokens)
+            bot_message_html = markdown_to_html(bot_message)
 
-            return {"user_message": prompt, "bot_message": bot_message}, False
+            return {"user_message": prompt, "bot_message": bot_message_html}, False
         except Exception as e:
             return {"user_message": prompt, "bot_message": e.user_message}, True

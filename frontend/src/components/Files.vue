@@ -105,7 +105,7 @@ function uploadFile({ file, onFinish, onError, onProgress }) {
             <ArchiveIcon />
           </n-icon>
         </div>
-        <n-text style="font-size: 16px"> 点击或拖动文件到此区域上传 </n-text>
+        <n-text style="font-size: 16px"> Click or drag files here to upload. </n-text>
       </n-upload-dragger>
     </n-upload>
 

@@ -26,9 +26,20 @@ export function getChatHistory(data: any) {
   });
 }
 
-
 export function chatWithLLM(data: any) {
   return axios.post("/api/chats/with_llm/", data).then((res) => {
+    return res;
+  });
+}
+
+export function chatKnowledgeWithHistory(data: any) {
+  return axios.post("/api/chats/db_with_history/", data).then((res) => {
+    return res;
+  });
+}
+
+export function chatKnowledgeWithoutHistory(data: any) {
+  return axios.post("/api/chats/db_without_history/", data).then((res) => {
     return res;
   });
 }

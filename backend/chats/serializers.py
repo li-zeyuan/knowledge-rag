@@ -14,14 +14,15 @@ class ChatWithLLMSerializer(serializers.Serializer):
         help_text = "温度"
     )
    
-class ChatDBWithHistorySerializer(serializers.Serializer):
+class ChatDBSerializer(serializers.Serializer):
     knowledge_db_name = serializers.CharField(
         required=True,
         help_text = "知识库名称"
     )
     history = serializers.ListField(
         child=serializers.DictField(
-            child=serializers.CharField()
+            allow_empty=False,
+            child=serializers.CharField(allow_blank=True)
         ),
         required=False,
         allow_empty=True,
@@ -34,6 +35,16 @@ class ChatDBWithHistorySerializer(serializers.Serializer):
     llm = serializers.CharField(
         required=True,
         help_text = "llm"
+    )
+    top_k = serializers.IntegerField(
+        required=False,
+        default=3,
+        help_text="检索结果数量"
+    )
+    temperature = serializers.FloatField(
+        required=False,
+        default=0.1,
+        help_text="温度"
     )
 
 class ChatDBWithoutHistorySerializer(serializers.Serializer):

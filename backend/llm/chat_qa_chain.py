@@ -1,5 +1,6 @@
 from re import L
 import re
+import markdown
 from plugins.chroma import get_vectordb
 from .llm import model_to_llm
 from langchain.chains import ConversationalRetrievalChain, RetrievalQA
@@ -11,10 +12,10 @@ default_template_rq = """使用以下上下文来回答最后的问题。如果�
     问题: {question}
     有用的回答:"""
 
-def chat_qa_whit_db_chain(knowledge_db_name, prompt,llm, history, top_k=4):
-    vector_db = get_vectordb(knowledge_db_name)
+def chat_qa_whit_db_chain(file, prompt,llm, history, top_k):
+    vector_db = get_vectordb(file.id, file.embedding)
     if vector_db is None:
-        return {"user_message": prompt, "bot_message": "vector_db is not found"}
+        return {"user_message": prompt, "bot_message": "vector_db is not found"}, True
     
     retriever = vector_db.as_retriever(search_type="similarity",  search_kwargs={'k': top_k})
     llm_model = model_to_llm(llm)
@@ -30,12 +31,12 @@ def chat_qa_whit_db_chain(knowledge_db_name, prompt,llm, history, top_k=4):
 
     result = qa_chain({"question": prompt, "chat_history": chat_history})
     answer = result["answer"]
-    return {"user_message": prompt, "bot_message": answer}
+    return {"user_message": prompt, "bot_message": answer}, False
 
-def chat_qa_whitout_db_chain(knowledge_db_name, prompt,llm, top_k=4, temperature=0.0):
-    vector_db = get_vectordb(knowledge_db_name)
+def chat_qa_whitout_db_chain(file, prompt,llm, top_k, temperature):
+    vector_db = get_vectordb(file.id, file.embedding)
     if vector_db is None:
-        return {"user_message": prompt, "bot_message": "vector_db is not found"}
+        return {"user_message": prompt, "bot_message": "vector_db is not found"}, True
     
     retriever = vector_db.as_retriever(search_type="similarity",  search_kwargs={'k': top_k})
     llm_model = model_to_llm(llm)
@@ -49,5 +50,14 @@ def chat_qa_whitout_db_chain(knowledge_db_name, prompt,llm, top_k=4, temperature
     )
 
     result = qa_chain({"query": prompt,  "temperature": temperature, "top_k": top_k})
-    answer = result["result"]
-    return {"user_message": prompt, "bot_message": answer}
+    answer = markdown_to_html(result["result"])
+    return {"user_message": prompt, "bot_message": answer}, False
+
+def markdown_to_html(markdown_text):
+    if len(markdown_text) == 0:
+        return ""
+
+    html_text = markdown.markdown(markdown_text)
+    # 替换\\n为<br>
+    re_html_text = html_text.replace("\\n", "<br>")
+    return re_html_text

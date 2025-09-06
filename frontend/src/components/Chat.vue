@@ -3,6 +3,8 @@ import { ref, computed, nextTick, defineProps } from "vue";
 import { NInput, NButton, NSelect, NAvatar } from "naive-ui";
 import {
   chatWithLLM,
+  chatKnowledgeWithHistory,
+  chatKnowledgeWithoutHistory,
   getKnowledgeDbNames,
   getChatHistory,
   clearChatHistory,
@@ -68,6 +70,53 @@ function onChatWithLLM() {
     });
 }
 
+function onChatKnowledgeWithHistory() {
+  chatButLoading.value = true;
+
+  const history = [];
+  for (const item of chatHistory.value.slice(-props.historyLength)) {
+    history.push({
+      user_message: item.prompt,
+      bot_message: item.bot_message,
+    });
+  }
+
+  chatKnowledgeWithHistory({
+    knowledge_db_name: knowledgeDbName.value,
+    prompt: prompt.value,
+    history: history,
+    llm: props.selectedLlm,
+    top_k: props.topK,
+  })
+    .then((res) => {
+      if (res.status === 200) {
+        prompt.value = "";
+        fetchChatHistory();
+      }
+    })
+    .finally(() => {
+      chatButLoading.value = false;
+    });
+}
+
+function onChatKnowledgeWithoutHistory() {
+  chatButLoading.value = true;
+  chatKnowledgeWithoutHistory({
+    knowledge_db_name: knowledgeDbName.value,
+    prompt: prompt.value,
+    llm: props.selectedLlm,
+  })
+    .then((res) => {
+      if (res.status === 200) {
+        prompt.value = "";
+        fetchChatHistory();
+      }
+    })
+    .finally(() => {
+      chatButLoading.value = false;
+    });
+}
+
 const knowledgeDbName = ref("");
 const knowledgeDbNames = ref([]);
 
@@ -111,14 +160,15 @@ function scrollToBottom() {
         <div class="bot-message">
           <n-avatar round size="medium" src="/src/assets/pwa-192x192.png" />
 
-          <div class="bot-message-content">{{ item.bot_message }}</div>
+          <div class="bot-message-content" v-html="item.bot_message"></div>
+          <!-- <div class="bot-message-content">{{ item.bot_message }}</div> -->
         </div>
       </div>
     </div>
 
     <div class="prompt-knowledge-container">
       <div class="prompt-container">
-        <div>Prompt</div>
+        <div>prompt</div>
         <n-input
           :value="prompt"
           @update:value="updatePrompt"
@@ -129,7 +179,7 @@ function scrollToBottom() {
       </div>
 
       <div class="knowledge-container">
-        <div>Select Knowledge</div>
+        <div>select knowledge</div>
         <n-select
           :value="knowledgeDbName"
           :options="knowledgeDbNames"
@@ -139,21 +189,35 @@ function scrollToBottom() {
     </div>
 
     <div class="button-container">
-      <div class="button-chat">
-        <n-button
-          type="primary"
-          :loading="chatButLoading"
-          :disabled="buttChatWithLLmDisabled"
-          @click="onChatWithLLM"
-        >
-          Chat with LLM
-        </n-button>
-        <n-button :loading="chatButLoading"
-          >Chat knowledge with history</n-button
-        >
-        <n-button :loading="chatButLoading"
-          >Chat knowledge without history</n-button
-        >
+      <div class="button-chat-container">
+        <div class="button-chat-item">
+          <n-button
+            type="primary"
+            :loading="chatButLoading"
+            :disabled="buttChatWithLLmDisabled"
+            @click="onChatWithLLM"
+          >
+            chat with llm
+          </n-button>
+        </div>
+
+        <div class="button-chat-item">
+          <n-button
+            :loading="chatButLoading"
+            :disabled="buttChatWithLLmDisabled"
+            @click="onChatKnowledgeWithHistory"
+            >chat knowledge with history</n-button
+          >
+        </div>
+
+        <div class="button-chat-item">
+          <n-button
+            :loading="chatButLoading"
+            :disabled="buttChatWithLLmDisabled"
+            @click="onChatKnowledgeWithoutHistory"
+            >chat knowledge without history</n-button
+          >
+        </div>
       </div>
 
       <div class="button-clear">
@@ -168,7 +232,7 @@ function scrollToBottom() {
               });
             }
           "
-          >Clear console</n-button
+          >clear console</n-button
         >
       </div>
     </div>
@@ -202,6 +266,7 @@ function scrollToBottom() {
 }
 .user-message-content,
 .bot-message-content {
+  white-space: pre-wrap;
   max-width: 80%;
   margin-left: 10px;
   margin-right: 10px;
@@ -239,10 +304,28 @@ function scrollToBottom() {
   justify-content: space-between;
   margin-top: 20px;
 }
-.button-chat {
+.button-chat-container {
   width: 70%;
   display: flex;
   justify-content: space-between;
+}
+
+/* 第一个button-chat-item */
+.button-chat-item:first-child {
+  overflow: hidden;
+  max-width: 24%;
+}
+/* 大于第一个button-chat-item */
+.button-chat-item:nth-child(n + 2) {
+  overflow: hidden;
+  max-width: 38%;
+}
+
+.button-chat-item .n-button {
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .button-clear {
   width: 28%;

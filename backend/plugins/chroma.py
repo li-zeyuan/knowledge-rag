@@ -56,16 +56,14 @@ def get_knowledge_db_list():
     dirs = os.listdir(vector_db_dir)
     return dirs
 
-def get_vectordb(knowledge_db_name):
-    files = os.listdir(f"{vector_db_dir}/{knowledge_db_name}")
+def get_vectordb(id, embedding):
+    files = os.listdir(f"{vector_db_dir}/{id}")
     if len(files) == 0:
         return None
 
-    embedding = knowledge_db_name.split("|")[-1]
     embedding_model = get_embedding(embedding)
-
     vector_db = Chroma(
-        persist_directory=f"{vector_db_dir}/{knowledge_db_name}",
+        persist_directory=f"{vector_db_dir}/{id}",
         embedding_function=embedding_model
     )
     
